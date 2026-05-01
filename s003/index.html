@@ -1,1 +1,508 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>都道府県別 犯罪率上昇ランキング（令和元年→令和6年）｜日本安全白書</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Oswald:wght@600;700&display=swap');
 
+  :root {
+    --bg: #0a0c10;
+    --surface: #11141b;
+    --surface2: #181c26;
+    --border: #252a38;
+    --accent: #e8392a;
+    --accent2: #f5a623;
+    --text: #e8eaf0;
+    --text-muted: #6b7280;
+    --rise: #ef4444;
+    --fall: #3b82f6;
+    --neutral: #6b7280;
+    --gold: #f5a623;
+    --silver: #9ca3af;
+    --bronze: #cd7c4a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 28px 24px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .channel-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  h1 {
+    font-size: clamp(16px, 3vw, 22px);
+    font-weight: 900;
+    line-height: 1.3;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+
+  .header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 2px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .badge-period { background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); }
+  .badge-source { background: rgba(232,57,42,0.12); border: 1px solid rgba(232,57,42,0.3); color: var(--accent); }
+
+  /* INTRO */
+  .intro-section {
+    max-width: 900px;
+    margin: 32px auto 0;
+    padding: 0 20px;
+  }
+
+  .intro-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    padding: 20px 24px;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 32px;
+  }
+
+  .intro-card p {
+    font-size: 13.5px;
+    line-height: 1.8;
+    color: #c0c4d0;
+  }
+
+  .intro-card strong { color: var(--text); }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .stat-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-family: 'Oswald', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-unit {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: 2px;
+  }
+
+  /* RANKING TABLE */
+  .table-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .section-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead tr {
+    background: var(--surface2);
+  }
+
+  thead th {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    padding: 12px 16px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+  }
+
+  thead th:first-child,
+  thead th:nth-child(2) { text-align: left; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover { background: var(--surface2); }
+
+  tbody tr.top3 { background: rgba(245,166,35,0.04); }
+  tbody tr.top3:hover { background: rgba(245,166,35,0.08); }
+
+  td {
+    padding: 14px 16px;
+    font-size: 14px;
+    text-align: right;
+    vertical-align: middle;
+  }
+
+  td:first-child { text-align: left; width: 56px; }
+  td:nth-child(2) { text-align: left; }
+
+  /* RANK */
+  .rank {
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .rank.r1 { color: var(--gold); }
+  .rank.r2 { color: var(--silver); }
+  .rank.r3 { color: var(--bronze); }
+
+  .rank-suffix {
+    font-size: 10px;
+    font-weight: 500;
+    margin-top: 3px;
+  }
+
+  /* PREFECTURE */
+  .pref-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .pref-region {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* VALUES */
+  .val-base, .val-r6 {
+    font-variant-numeric: tabular-nums;
+    color: #9ca3af;
+    font-size: 13px;
+  }
+
+  .val-diff {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .val-diff.pos { color: var(--rise); }
+  .val-diff.neg { color: var(--fall); }
+  .val-diff.zero { color: var(--neutral); }
+
+  /* RATE BAR */
+  .rate-cell {
+    min-width: 160px;
+  }
+
+  .rate-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .rate-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    min-width: 70px;
+    text-align: right;
+  }
+
+  .rate-label.pos { color: var(--rise); }
+  .rate-label.neg { color: var(--fall); }
+  .rate-label.zero { color: var(--neutral); }
+
+  .bar-track {
+    width: 80px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+
+  .bar-fill.pos { background: var(--rise); }
+  .bar-fill.neg { background: var(--fall); }
+
+  /* FOOTER */
+  footer {
+    max-width: 900px;
+    margin: 40px auto 0;
+    padding: 24px 20px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .footer-logo {
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  .footer-note {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.8;
+    max-width: 560px;
+  }
+
+  .footer-note a { color: var(--accent); text-decoration: none; }
+  .footer-note a:hover { text-decoration: underline; }
+
+  /* MOBILE */
+  @media (max-width: 600px) {
+    .stats-bar { grid-template-columns: 1fr 1fr; }
+    .rate-cell { min-width: 120px; }
+    .bar-track { width: 50px; }
+    .val-base { display: none; }
+    td { padding: 12px 10px; }
+    thead th { padding: 10px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="channel-label">日本安全白書 ／ S003</div>
+    <h1>都道府県別 刑法犯犯罪率 上昇ランキング<br>令和元年→令和6年（5年間比較）</h1>
+    <div class="header-meta">
+      <span class="badge badge-period">比較期間：令和元年（2019年）→ 令和6年（2024年）</span>
+      <span class="badge badge-source">出典：警察庁 令和7年版警察白書 図表１－５－２</span>
+    </div>
+  </div>
+</header>
+
+<div class="intro-section">
+  <div class="intro-card">
+    <p>
+      本ランキングは、警察庁が公表する<strong>「都道府県別人口10万人当たり刑法犯認知件数」</strong>（令和7年版警察白書 統計資料 図表１－５－２）をもとに、令和元年と令和6年を比較した<strong>上昇率（%）</strong>の高い順に全47都道府県を並べたものです。<br>
+      全国の刑法犯認知件数は令和3年に戦後最少（452.7件/10万人）を記録した後、令和6年は<strong>595.9件</strong>まで回復しています。
+    </p>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-label">全国（R元）</div>
+      <div class="stat-value">591.5<span class="stat-unit">件</span></div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">全国（R6）</div>
+      <div class="stat-value">595.9<span class="stat-unit">件</span></div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">全国 上昇率</div>
+      <div class="stat-value" style="color:var(--rise)">+0.7<span class="stat-unit">%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <div class="section-title">全47都道府県 上昇率ランキング（高い順）</div>
+  <table>
+    <thead>
+      <tr>
+        <th>順位</th>
+        <th>都道府県</th>
+        <th>R元（件）</th>
+        <th>R6（件）</th>
+        <th>上昇幅</th>
+        <th class="rate-cell">上昇率</th>
+      </tr>
+    </thead>
+    <tbody id="ranking-body"></tbody>
+  </table>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">日本安全白書</div>
+    <div class="footer-note">
+      出典：警察庁「令和7年版警察白書 統計資料」図表１－５－２ 都道府県別人口10万人当たり刑法犯認知件数<br>
+      <a href="https://www.npa.go.jp/hakusyo/r07/data.html" target="_blank" rel="noopener">https://www.npa.go.jp/hakusyo/r07/data.html</a><br>
+      ※本ページのデータは警察庁公表値をそのまま使用しています。確認日：2026年5月1日
+    </div>
+  </div>
+</footer>
+
+<script>
+const data = [
+  {pref:"沖縄",region:"九州・沖縄",r1:445.6,r6:653.3},
+  {pref:"青森",region:"東北",r1:278.4,r6:374.1},
+  {pref:"鹿児島",region:"九州・沖縄",r1:360.5,r6:480.8},
+  {pref:"秋田",region:"東北",r1:222.4,r6:287.2},
+  {pref:"群馬",region:"関東",r1:600.3,r6:772.1},
+  {pref:"長崎",region:"九州・沖縄",r1:255.8,r6:320.2},
+  {pref:"石川",region:"中部",r1:395.8,r6:490.3},
+  {pref:"香川",region:"四国",r1:518.0,r6:638.8},
+  {pref:"滋賀",region:"近畿",r1:478.2,r6:581.1},
+  {pref:"佐賀",region:"九州・沖縄",r1:416.2,r6:504.8},
+  {pref:"大分",region:"九州・沖縄",r1:266.1,r6:317.2},
+  {pref:"鳥取",region:"中国",r1:364.3,r6:424.1},
+  {pref:"岩手",region:"東北",r1:249.8,r6:289.9},
+  {pref:"富山",region:"中部",r1:432.2,r6:500.6},
+  {pref:"栃木",region:"関東",r1:574.1,r6:645.3},
+  {pref:"宮崎",region:"九州・沖縄",r1:370.8,r6:413.9},
+  {pref:"三重",region:"中部",r1:578.9,r6:639.0},
+  {pref:"神奈川",region:"関東",r1:452.9,r6:495.6},
+  {pref:"福岡",region:"九州・沖縄",r1:672.4,r6:727.6},
+  {pref:"広島",region:"中国",r1:503.4,r6:540.7},
+  {pref:"岡山",region:"中国",r1:497.4,r6:531.2},
+  {pref:"熊本",region:"九州・沖縄",r1:371.5,r6:396.1},
+  {pref:"茨城",region:"関東",r1:705.5,r6:751.7},
+  {pref:"高知",region:"四国",r1:509.6,r6:537.3},
+  {pref:"愛知",region:"中部",r1:661.1,r6:684.0},
+  {pref:"徳島",region:"四国",r1:427.3,r6:430.9},
+  {pref:"北海道",region:"北海道",r1:448.9,r6:450.4},
+  {pref:"福島",region:"東北",r1:508.4,r6:507.4},
+  {pref:"山形",region:"東北",r1:303.2,r6:301.9},
+  {pref:"福井",region:"中部",r1:406.2,r6:402.2},
+  {pref:"和歌山",region:"近畿",r1:468.6,r6:461.6},
+  {pref:"愛媛",region:"四国",r1:553.2,r6:543.7},
+  {pref:"奈良",region:"近畿",r1:496.3,r6:483.8},
+  {pref:"山口",region:"中国",r1:382.9,r6:372.4},
+  {pref:"大阪",region:"近畿",r1:957.6,r6:929.6},
+  {pref:"岐阜",region:"中部",r1:645.4,r6:624.9},
+  {pref:"兵庫",region:"近畿",r1:736.1,r6:708.6},
+  {pref:"島根",region:"中国",r1:341.2,r6:324.9},
+  {pref:"静岡",region:"関東",r1:489.4,r6:463.3},
+  {pref:"長野",region:"中部",r1:412.6,r6:386.2},
+  {pref:"埼玉",region:"関東",r1:755.9,r6:704.7},
+  {pref:"新潟",region:"関東",r1:483.0,r6:448.6},
+  {pref:"千葉",region:"関東",r1:665.2,r6:614.2},
+  {pref:"宮城",region:"東北",r1:561.4,r6:506.5},
+  {pref:"東京",region:"東京",r1:747.2,r6:668.3},
+  {pref:"山梨",region:"関東",r1:489.0,r6:435.0},
+  {pref:"京都",region:"近畿",r1:584.0,r6:478.5},
+];
+
+const maxRate = 46.6;
+
+const tbody = document.getElementById('ranking-body');
+
+data.forEach((d, i) => {
+  const rate = ((d.r6 - d.r1) / d.r1 * 100);
+  const diff = d.r6 - d.r1;
+  const rank = i + 1;
+  const isPos = diff > 0;
+  const isNeg = diff < 0;
+
+  const rankClass = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
+  const rowClass = rank <= 3 ? 'top3' : '';
+
+  const diffClass = isPos ? 'pos' : isNeg ? 'neg' : 'zero';
+  const diffSign = isPos ? '+' : '';
+  const rateSign = isPos ? '+' : '';
+
+  const barPct = Math.min(Math.abs(rate) / maxRate * 100, 100).toFixed(1);
+  const barClass = isPos ? 'pos' : 'neg';
+
+  const tr = document.createElement('tr');
+  tr.className = rowClass;
+  tr.innerHTML = `
+    <td><div class="rank ${rankClass}"><span>${rank}</span><span class="rank-suffix">位</span></div></td>
+    <td>
+      <div class="pref-name">${d.pref}</div>
+      <div class="pref-region">${d.region}</div>
+    </td>
+    <td class="val-base">${d.r1.toFixed(1)}</td>
+    <td class="val-r6">${d.r6.toFixed(1)}</td>
+    <td class="val-diff ${diffClass}">${diffSign}${diff.toFixed(1)}</td>
+    <td class="rate-cell">
+      <div class="rate-wrap">
+        <span class="rate-label ${diffClass}">${rateSign}${rate.toFixed(1)}%</span>
+        <div class="bar-track">
+          <div class="bar-fill ${barClass}" style="width:${barPct}%"></div>
+        </div>
+      </div>
+    </td>
+  `;
+  tbody.appendChild(tr);
+});
+</script>
+
+</body>
+</html>
