@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>侵入盗 発生率 都道府県ランキング｜日本安全白書</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Bebas+Neue&display=swap');
+
+  :root {
+    --bg:        #0a0c1a;
+    --surface:   #111328;
+    --border:    #1e2240;
+    --accent:    #e05050;
+    --accent2:   #3ca878;
+    --gold:      #f0c040;
+    --text:      #e8eaf0;
+    --muted:     #6a7090;
+    --top5-bg:   rgba(220,80,80,0.08);
+    --bot5-bg:   rgba(60,168,120,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* ===== ヘッダー ===== */
+  header {
+    background: linear-gradient(160deg, #0d1030 0%, #1a0d20 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 36px 24px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 40px,
+      rgba(255,255,255,0.015) 40px,
+      rgba(255,255,255,0.015) 41px
+    );
+  }
+  .channel-label {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  header h1 {
+    font-size: clamp(18px, 4vw, 26px);
+    font-weight: 900;
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+  header h1 span {
+    color: var(--accent);
+  }
+  .header-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+
+  /* ===== 注意書きバナー ===== */
+  .notice {
+    background: rgba(240,192,64,0.08);
+    border-left: 3px solid var(--gold);
+    margin: 20px 16px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: #c8a830;
+    border-radius: 0 6px 6px 0;
+    line-height: 1.7;
+  }
+
+  /* ===== 凡例 ===== */
+  .legend {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 16px 16px 8px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 2px;
+  }
+
+  /* ===== テーブルラッパー ===== */
+  .table-wrap {
+    margin: 0 16px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  thead tr {
+    background: #0e1025;
+    border-bottom: 2px solid var(--border);
+  }
+  thead th {
+    padding: 12px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-align: left;
+    white-space: nowrap;
+  }
+  thead th.num { text-align: right; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: rgba(255,255,255,0.03); }
+  tbody tr:last-child { border-bottom: none; }
+
+  /* 上位5・下位5 強調 */
+  tbody tr.top5  { background: var(--top5-bg); }
+  tbody tr.bot5  { background: var(--bot5-bg); }
+  tbody tr.top5:hover { background: rgba(220,80,80,0.13); }
+  tbody tr.bot5:hover { background: rgba(60,168,120,0.13); }
+
+  td {
+    padding: 11px 10px;
+    vertical-align: middle;
+  }
+
+  /* 順位列 */
+  .td-rank {
+    width: 52px;
+    text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .td-rank.r1 { color: #f0c040; }
+  .td-rank.r2 { color: #b0b8c0; }
+  .td-rank.r3 { color: #c08050; }
+
+  /* メダルアイコン */
+  .medal { font-size: 18px; }
+
+  /* 都道府県名 */
+  .td-name {
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .td-name .region {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  /* バー列 */
+  .td-bar {
+    width: 30%;
+    min-width: 80px;
+  }
+  .bar-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    height: 8px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+  }
+  .bar-high { background: linear-gradient(90deg, #c04040, #e06060); }
+  .bar-low  { background: linear-gradient(90deg, #2a8858, #3cba80); }
+
+  /* 数値列 */
+  .td-rate {
+    text-align: right;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .td-rate .unit {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--muted);
+    margin-left: 2px;
+  }
+  .rate-high { color: #e06060; }
+  .rate-low  { color: #3cba80; }
+  .rate-mid  { color: var(--text); }
+
+  /* 件数列 */
+  .td-count {
+    text-align: right;
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ===== フッター ===== */
+  footer {
+    margin: 32px 16px 0;
+    padding: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.9;
+  }
+  footer a {
+    color: #5080d0;
+    text-decoration: none;
+  }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="channel-label">日本安全白書</p>
+  <h1>侵入盗 発生率<br><span>都道府県ランキング</span></h1>
+  <p class="header-sub">令和6年（2024年）／人口10万人あたり認知件数</p>
+</header>
+
+<div class="notice">
+  ⚠️ 犯罪率（人口10万人あたり）はAIによる算出を含みます。正確な数値は各公式ソースをご確認ください。
+</div>
+
+<div class="legend">
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#e06060"></div>
+    <span>上位5県（発生率が高い）</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#3cba80"></div>
+    <span>下位5県（発生率が低い）</span>
+  </div>
+</div>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>順位</th>
+      <th>都道府県</th>
+      <th class="td-bar"></th>
+      <th class="num">発生率</th>
+      <th class="num">認知件数</th>
+    </tr>
+  </thead>
+  <tbody id="tbody">
+  </tbody>
+</table>
+</div>
+
+<footer>
+  <strong>データ出典</strong><br>
+  ・警察庁「令和7年1〜12月犯罪統計【確定値】」第6表（侵入盗・都道府県別・2024年1〜12月）<br>
+  　<a href="https://www.npa.go.jp/toukei/keiji35/new_hanzai07.htm" target="_blank">https://www.npa.go.jp/toukei/keiji35/new_hanzai07.htm</a><br>
+  ・総務省「人口推計（令和6年10月1日現在）」<br>
+  　<a href="https://www.stat.go.jp/data/jinsui/" target="_blank">https://www.stat.go.jp/data/jinsui/</a><br><br>
+  本ページのデータは日本安全白書が公的統計をもとに算出したものです。
+</footer>
+
+<script>
+const DATA = [
+  {rank:1,  name:"群馬県", region:"関東",  count:2467, rate:128.02},
+  {rank:2,  name:"茨城県", region:"関東",  count:2374, rate:83.59},
+  {rank:3,  name:"栃木県", region:"関東",  count:1481, rate:77.62},
+  {rank:4,  name:"三重県", region:"中部",  count:1211, rate:69.24},
+  {rank:5,  name:"岐阜県", region:"中部",  count:1136, rate:57.96},
+  {rank:6,  name:"埼玉県", region:"関東",  count:3960, rate:53.70},
+  {rank:7,  name:"福島県", region:"東北",  count:947,  rate:53.20},
+  {rank:8,  name:"高知県", region:"四国",  count:359,  rate:53.03},
+  {rank:9,  name:"千葉県", region:"関東",  count:3042, rate:48.41},
+  {rank:10, name:"石川県", region:"中部",  count:490,  rate:43.79},
+  {rank:11, name:"長野県", region:"中部",  count:883,  rate:43.78},
+  {rank:12, name:"新潟県", region:"関東",  count:935,  rate:43.73},
+  {rank:13, name:"福井県", region:"中部",  count:327,  rate:42.97},
+  {rank:14, name:"佐賀県", region:"九州",  count:345,  rate:42.80},
+  {rank:15, name:"福岡県", region:"九州",  count:2117, rate:41.23},
+  {rank:16, name:"山梨県", region:"関東",  count:301,  rate:37.39},
+  {rank:17, name:"静岡県", region:"中部",  count:1277, rate:35.82},
+  {rank:18, name:"愛知県", region:"中部",  count:2680, rate:35.53},
+  {rank:19, name:"宮城県", region:"東北",  count:782,  rate:34.36},
+  {rank:20, name:"滋賀県", region:"近畿",  count:471,  rate:33.31},
+  {rank:21, name:"香川県", region:"四国",  count:308,  rate:32.63},
+  {rank:22, name:"富山県", region:"中部",  count:325,  rate:31.93},
+  {rank:23, name:"徳島県", region:"四国",  count:219,  rate:31.15},
+  {rank:24, name:"鹿児島県",region:"九州", count:465,  rate:29.75},
+  {rank:25, name:"愛媛県", region:"四国",  count:382,  rate:29.43},
+  {rank:26, name:"岩手県", region:"東北",  count:342,  rate:28.96},
+  {rank:27, name:"島根県", region:"中国",  count:188,  rate:28.88},
+  {rank:28, name:"岡山県", region:"中国",  count:533,  rate:28.41},
+  {rank:29, name:"兵庫県", region:"近畿",  count:1531, rate:28.35},
+  {rank:30, name:"神奈川県",region:"関東", count:2518, rate:27.25},
+  {rank:31, name:"沖縄県", region:"九州",  count:398,  rate:27.11},
+  {rank:32, name:"和歌山県",region:"近畿", count:234,  rate:26.20},
+  {rank:33, name:"青森県", region:"東北",  count:307,  rate:25.78},
+  {rank:34, name:"大分県", region:"九州",  count:272,  rate:24.57},
+  {rank:35, name:"宮崎県", region:"九州",  count:255,  rate:24.06},
+  {rank:36, name:"山形県", region:"東北",  count:240,  rate:23.14},
+  {rank:37, name:"奈良県", region:"近畿",  count:294,  rate:22.51},
+  {rank:38, name:"広島県", region:"中国",  count:581,  rate:21.07},
+  {rank:39, name:"秋田県", region:"東北",  count:189,  rate:20.45},
+  {rank:40, name:"熊本県", region:"九州",  count:326,  rate:18.89},
+  {rank:41, name:"山口県", region:"中国",  count:238,  rate:18.34},
+  {rank:42, name:"北海道", region:"北海道",count:899,  rate:17.49},
+  {rank:43, name:"大阪府", region:"近畿",  count:1497, rate:17.04},
+  {rank:44, name:"鳥取県", region:"中国",  count:90,   rate:16.64},
+  {rank:45, name:"東京都", region:"関東",  count:2258, rate:16.04},
+  {rank:46, name:"京都府", region:"近畿",  count:384,  rate:15.08},
+  {rank:47, name:"長崎県", region:"九州",  count:178,  rate:14.03},
+];
+
+const MAX_RATE = DATA[0].rate;
+const tbody = document.getElementById('tbody');
+
+DATA.forEach(d => {
+  const isTop5 = d.rank <= 5;
+  const isBot5 = d.rank >= 43;
+  const barPct = (d.rate / MAX_RATE * 100).toFixed(1);
+  const barClass = isTop5 ? 'bar-high' : isBot5 ? 'bar-low' : 'bar-high';
+  const rateClass = isTop5 ? 'rate-high' : isBot5 ? 'rate-low' : 'rate-mid';
+  const rowClass  = isTop5 ? 'top5' : isBot5 ? 'bot5' : '';
+
+  let rankDisplay = d.rank;
+  if (d.rank === 1) rankDisplay = '<span class="medal">🥇</span>';
+  else if (d.rank === 2) rankDisplay = '<span class="medal">🥈</span>';
+  else if (d.rank === 3) rankDisplay = '<span class="medal">🥉</span>';
+
+  const rankClass = d.rank === 1 ? 'r1' : d.rank === 2 ? 'r2' : d.rank === 3 ? 'r3' : '';
+
+  tbody.innerHTML += `
+    <tr class="${rowClass}">
+      <td class="td-rank ${rankClass}">${rankDisplay}</td>
+      <td class="td-name">
+        ${d.name}
+        <span class="region">${d.region}</span>
+      </td>
+      <td class="td-bar">
+        <div class="bar-track">
+          <div class="bar-fill ${barClass}" style="width:${barPct}%"></div>
+        </div>
+      </td>
+      <td class="td-rate ${rateClass}">${d.rate.toFixed(1)}<span class="unit">件</span></td>
+      <td class="td-count">${d.count.toLocaleString()}件</td>
+    </tr>
+  `;
+});
+</script>
+</body>
+</html>
